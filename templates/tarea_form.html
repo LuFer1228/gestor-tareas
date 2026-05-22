@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}{% if accion == 'nueva' %}Nueva Tarea{% else %}Editar Tarea{% endif %} — EduTask{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="card shadow border-0 rounded-4 mt-2">
+      <div class="card-body p-4">
+
+        <h3 class="fw-bold text-center mb-4">
+          {% if accion == 'nueva' %}
+            <i class="bi bi-plus-circle-fill text-primary me-2"></i>Nueva tarea
+          {% else %}
+            <i class="bi bi-pencil-fill text-warning me-2"></i>Editar tarea
+          {% endif %}
+        </h3>
+
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Título *</label>
+            <input type="text" name="titulo" class="form-control"
+                   placeholder="Ej: Entrega proyecto de cálculo"
+                   value="{{ tarea.titulo if tarea else '' }}"
+                   required autofocus/>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Descripción <span class="text-muted small">(opcional)</span></label>
+            <textarea name="descripcion" class="form-control" rows="3"
+                      placeholder="Detalles de la tarea...">{{ tarea.descripcion if tarea else '' }}</textarea>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Fecha límite *</label>
+            <input type="date" name="fecha_limite" class="form-control"
+                   value="{{ tarea.fecha_limite.strftime('%Y-%m-%d') if tarea else '' }}"
+                   required/>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn {% if accion == 'nueva' %}btn-primary{% else %}btn-warning{% endif %} fw-bold py-2 flex-grow-1">
+              {% if accion == 'nueva' %}
+                <i class="bi bi-plus-circle me-2"></i>Crear tarea
+              {% else %}
+                <i class="bi bi-save me-2"></i>Guardar cambios
+              {% endif %}
+            </button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary px-4">
+              Cancelar
+            </a>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

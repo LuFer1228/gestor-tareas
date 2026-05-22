@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}Mis Tareas — EduTask{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold mb-0">📋 Mis Tareas</h2>
+    <p class="text-muted small mb-0">Hola, {{ current_user.nombre }}</p>
+  </div>
+  <a href="{{ url_for('nueva_tarea') }}" class="btn btn-primary fw-bold">
+    <i class="bi bi-plus-circle me-2"></i>Nueva tarea
+  </a>
+</div>
+
+<!-- Alerta de tareas próximas a vencer -->
+{% set urgentes = tareas_pendientes | selectattr('fecha_limite', 'le', pronto) | list %}
+{% if urgentes %}
+<div class="alert alert-warning" role="alert">
+  <i class="bi bi-alarm-fill me-2"></i>
+  <strong>¡Atención!</strong> Tienes <strong>{{ urgentes | length }} tarea(s)</strong> que vencen en los próximos 2 días.
+</div>
+{% endif %}
+
+<!-- Tareas pendientes -->
+<h5 class="fw-bold mb-3">
+  <i class="bi bi-hourglass-split text-warning me-2"></i>Pendientes
+</h5>
+
+{% if tareas_pendientes %}
+  <div class="row g-3 mb-5">
+    {% for tarea in tareas_pendientes %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="fw-bold mb-0">{{ tarea.titulo }}</h6>
+              {% if tarea.fecha_limite == hoy %}
+                <span class="badge bg-danger">¡Hoy!</span>
+              {% elif tarea.fecha_limite <= pronto %}
+                <span class="badge bg-warning text-dark">Pronto</span>
+              {% endif %}
+            </div>
+
+            {% if tarea.descripcion %}
+              <p class="text-muted small mb-2">{{ tarea.descripcion }}</p>
+            {% endif %}
+
+            <p class="small text-muted mb-3">
+              <i class="bi bi-calendar-event me-1"></i>
+              {{ tarea.fecha_limite.strftime('%d/%m/%Y') }}
+            </p>
+
+            <div class="d-flex gap-2">
+              <a href="{{ url_for('completar_tarea', id=tarea.id) }}"
+                 class="btn btn-success btn-sm">
+                <i class="bi bi-check2"></i> Completar
+              </a>
+              <a href="{{ url_for('editar_tarea', id=tarea.id) }}"
+                 class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <a href="{{ url_for('eliminar_tarea', id=tarea.id) }}"
+                 class="btn btn-outline-danger btn-sm"
+                 onclick="return confirm('¿Eliminar esta tarea?')">
+                <i class="bi bi-trash"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <div class="text-center text-muted py-5">
+    <i class="bi bi-clipboard-check display-4 d-block mb-2 text-success"></i>
+    <p class="fw-semibold">¡Sin tareas pendientes! 🎉</p>
+    <a href="{{ url_for('nueva_tarea') }}" class="btn btn-primary btn-sm">
+      Agregar tarea
+    </a>
+  </div>
+{% endif %}
+
+<!-- Tareas completadas -->
+{% if tareas_completadas %}
+<hr class="my-4"/>
+<h5 class="fw-bold mb-3 text-muted">
+  <i class="bi bi-check-circle-fill text-success me-2"></i>Completadas
+</h5>
+<div class="row g-3">
+  {% for tarea in tareas_completadas %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card border-0 shadow-sm rounded-4 h-100 opacity-75">
+        <div class="card-body">
+          <h6 class="fw-bold text-decoration-line-through text-muted mb-1">
+            {{ tarea.titulo }}
+          </h6>
+          <p class="small text-muted mb-3">
+            <i class="bi bi-calendar-event me-1"></i>
+            {{ tarea.fecha_limite.strftime('%d/%m/%Y') }}
+          </p>
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('completar_tarea', id=tarea.id) }}"
+               class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-arrow-counterclockwise"></i> Reabrir
+            </a>
+            <a href="{{ url_for('eliminar_tarea', id=tarea.id) }}"
+               class="btn btn-outline-danger btn-sm"
+               onclick="return confirm('¿Eliminar esta tarea?')">
+              <i class="bi bi-trash"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
