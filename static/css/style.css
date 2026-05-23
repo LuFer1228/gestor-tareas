@@ -1,0 +1,108 @@
+/* ── Variables de color ───────────────────────────────────────── */
+:root {
+  --color-primary: #4361ee;
+  --color-success: #2ec4b6;
+  --color-warning: #f4a261;
+  --color-danger:  #e63946;
+  --color-bg:      #f0f4ff;
+  --color-card:    #ffffff;
+}
+
+/* ── Base ─────────────────────────────────────────────────────── */
+body {
+  font-family: 'Nunito', sans-serif;
+  background-color: var(--color-bg);
+  color: #222;
+}
+
+/* ── Navbar ───────────────────────────────────────────────────── */
+.bg-primary-custom {
+  background: linear-gradient(135deg, #4361ee, #3a0ca3) !important;
+}
+
+/* ── Fondos suaves ────────────────────────────────────────────── */
+.bg-primary-soft  { background-color: #dce8ff; }
+.bg-success-soft  { background-color: #d4f5f1; }
+.bg-warning-soft  { background-color: #fdebd0; }
+
+/* ── Cards de tareas ──────────────────────────────────────────── */
+.card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(67, 97, 238, 0.1) !important;
+}
+
+/* ── Formularios ──────────────────────────────────────────────── */
+.form-control:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.2);
+}
+
+/* ── Botones ──────────────────────────────────────────────────── */
+.btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.btn-primary:hover {
+  background: #3451d1;
+  border-color: #3451d1;
+}
+
+/* ── Calendario ───────────────────────────────────────────────── */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.calendar-day {
+  padding: 4px 2px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  cursor: default;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background 0.15s;
+}
+
+.calendar-day:hover {
+  background: #f0f4ff;
+}
+
+.calendar-hoy span {
+  background: #4361ee;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* Puntitos de entregas y eventos */
+.calendar-dots {
+  display: flex;
+  gap: 2px;
+  margin-top: 2px;
+  min-height: 6px;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-entrega {
+  background-color: #e63946;
+}
+
+.dot-evento {
+  background-color: #4361ee;
+}

@@ -1,5 +1,45 @@
 <!DOCTYPE html>
 <html lang="es">
+<style>
+  .calendar-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 4px;
+  }
+  .calendar-day {
+    padding: 4px 2px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .calendar-hoy span {
+    background: #4361ee;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+  .calendar-dots {
+    display: flex;
+    gap: 2px;
+    margin-top: 2px;
+    min-height: 6px;
+  }
+  .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .dot-entrega { background-color: #e63946; }
+  .dot-evento  { background-color: #4361ee; }
+</style>
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>

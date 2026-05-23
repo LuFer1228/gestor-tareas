@@ -2,120 +2,324 @@
 {% block title %}Mis Tareas — EduTask{% endblock %}
 
 {% block content %}
+<style>
+  .dashboard-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: url("{{ url_for('static', filename='img/img_2.png') }}") center center / cover no-repeat;
+    z-index: -1;
+    filter: brightness(0.7);
+  }
+</style>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <div>
-    <h2 class="fw-bold mb-0">📋 Mis Tareas</h2>
-    <p class="text-muted small mb-0">Hola, {{ current_user.nombre }}</p>
-  </div>
-  <a href="{{ url_for('nueva_tarea') }}" class="btn btn-primary fw-bold">
-    <i class="bi bi-plus-circle me-2"></i>Nueva tarea
-  </a>
-</div>
+<div class="dashboard-bg"></div>
+<div class="row g-4">
 
-<!-- Alerta de tareas próximas a vencer -->
-{% set urgentes = tareas_pendientes | selectattr('fecha_limite', 'le', pronto) | list %}
-{% if urgentes %}
-<div class="alert alert-warning" role="alert">
-  <i class="bi bi-alarm-fill me-2"></i>
-  <strong>¡Atención!</strong> Tienes <strong>{{ urgentes | length }} tarea(s)</strong> que vencen en los próximos 2 días.
-</div>
-{% endif %}
+  <!-- ── COLUMNA IZQUIERDA: Tareas ─────────────────────────────── -->
+  <div class="col-lg-8">
 
-<!-- Tareas pendientes -->
-<h5 class="fw-bold mb-3">
-  <i class="bi bi-hourglass-split text-warning me-2"></i>Pendientes
-</h5>
-
-{% if tareas_pendientes %}
-  <div class="row g-3 mb-5">
-    {% for tarea in tareas_pendientes %}
-      <div class="col-md-6 col-lg-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-              <h6 class="fw-bold mb-0">{{ tarea.titulo }}</h6>
-              {% if tarea.fecha_limite == hoy %}
-                <span class="badge bg-danger">¡Hoy!</span>
-              {% elif tarea.fecha_limite <= pronto %}
-                <span class="badge bg-warning text-dark">Pronto</span>
-              {% endif %}
-            </div>
-
-            {% if tarea.descripcion %}
-              <p class="text-muted small mb-2">{{ tarea.descripcion }}</p>
-            {% endif %}
-
-            <p class="small text-muted mb-3">
-              <i class="bi bi-calendar-event me-1"></i>
-              {{ tarea.fecha_limite.strftime('%d/%m/%Y') }}
-            </p>
-
-            <div class="d-flex gap-2">
-              <a href="{{ url_for('completar_tarea', id=tarea.id) }}"
-                 class="btn btn-success btn-sm">
-                <i class="bi bi-check2"></i> Completar
-              </a>
-              <a href="{{ url_for('editar_tarea', id=tarea.id) }}"
-                 class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-pencil"></i>
-              </a>
-              <a href="{{ url_for('eliminar_tarea', id=tarea.id) }}"
-                 class="btn btn-outline-danger btn-sm"
-                 onclick="return confirm('¿Eliminar esta tarea?')">
-                <i class="bi bi-trash"></i>
-              </a>
-            </div>
-          </div>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="fw-bold mb-0">📋 Mis Tareas</h2>
+        <p class="text-muted small mb-0">Hola, {{ current_user.nombre }}</p>
       </div>
-    {% endfor %}
-  </div>
+      <a href="{{ url_for('nueva_tarea') }}" class="btn btn-primary fw-bold">
+        <i class="bi bi-plus-circle me-2"></i>Nueva tarea
+      </a>
+    </div>
 
-{% else %}
-  <div class="text-center text-muted py-5">
-    <i class="bi bi-clipboard-check display-4 d-block mb-2 text-success"></i>
-    <p class="fw-semibold">¡Sin tareas pendientes! 🎉</p>
-    <a href="{{ url_for('nueva_tarea') }}" class="btn btn-primary btn-sm">
-      Agregar tarea
-    </a>
-  </div>
-{% endif %}
+    {% set urgentes = tareas_pendientes | selectattr('fecha_limite', 'le', pronto) | list %}
+    {% if urgentes %}
+    <div class="alert alert-warning" role="alert">
+      <i class="bi bi-alarm-fill me-2"></i>
+      <strong>¡Atención!</strong> Tienes <strong>{{ urgentes | length }} tarea(s)</strong> que vencen en los próximos 2 días.
+    </div>
+    {% endif %}
 
-<!-- Tareas completadas -->
-{% if tareas_completadas %}
-<hr class="my-4"/>
-<h5 class="fw-bold mb-3 text-muted">
-  <i class="bi bi-check-circle-fill text-success me-2"></i>Completadas
-</h5>
-<div class="row g-3">
-  {% for tarea in tareas_completadas %}
-    <div class="col-md-6 col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4 h-100 opacity-75">
-        <div class="card-body">
-          <h6 class="fw-bold text-decoration-line-through text-muted mb-1">
-            {{ tarea.titulo }}
-          </h6>
-          <p class="small text-muted mb-3">
-            <i class="bi bi-calendar-event me-1"></i>
-            {{ tarea.fecha_limite.strftime('%d/%m/%Y') }}
-          </p>
-          <div class="d-flex gap-2">
-            <a href="{{ url_for('completar_tarea', id=tarea.id) }}"
-               class="btn btn-outline-secondary btn-sm">
-              <i class="bi bi-arrow-counterclockwise"></i> Reabrir
-            </a>
-            <a href="{{ url_for('eliminar_tarea', id=tarea.id) }}"
-               class="btn btn-outline-danger btn-sm"
-               onclick="return confirm('¿Eliminar esta tarea?')">
-              <i class="bi bi-trash"></i>
-            </a>
+    <h5 class="fw-bold mb-3">
+      <i class="bi bi-hourglass-split text-warning me-2"></i>Pendientes
+    </h5>
+
+    {% if tareas_pendientes %}
+      <div class="row g-3 mb-4">
+        {% for tarea in tareas_pendientes %}
+          {% set total = tarea.subtareas | length %}
+          {% set hechas = tarea.subtareas | selectattr('completada') | list | length %}
+          {% set progreso = ((hechas / total) * 100) | int if total > 0 else 0 %}
+
+          <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h6 class="fw-bold mb-0">{{ tarea.titulo }}</h6>
+                  {% if tarea.fecha_limite == hoy %}
+                    <span class="badge bg-danger">¡Hoy!</span>
+                  {% elif tarea.fecha_limite <= pronto %}
+                    <span class="badge bg-warning text-dark">Pronto</span>
+                  {% endif %}
+                </div>
+
+                {% if tarea.descripcion %}
+                  <p class="text-muted small mb-2">{{ tarea.descripcion }}</p>
+                {% endif %}
+
+                <p class="small text-muted mb-2">
+                  <i class="bi bi-calendar-event me-1"></i>
+                  {{ tarea.fecha_limite.strftime('%d/%m/%Y') }}
+                </p>
+
+                {% if total > 0 %}
+                <div class="mb-2">
+                  <div class="d-flex justify-content-between small text-muted mb-1">
+                    <span>Progreso</span>
+                    <span>{{ hechas }}/{{ total }} — {{ progreso }}%</span>
+                  </div>
+                  <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: {{ progreso }}%"></div>
+                  </div>
+                </div>
+                {% endif %}
+
+                {% if tarea.subtareas %}
+                <ul class="list-unstyled mb-2">
+                  {% for sub in tarea.subtareas %}
+                  <li class="d-flex align-items-center gap-2 py-1 border-bottom">
+                    <a href="{{ url_for('completar_subtarea', id=sub.id) }}" class="text-decoration-none">
+                      <i class="bi {% if sub.completada %}bi-check-circle-fill text-success{% else %}bi-circle text-muted{% endif %}"></i>
+                    </a>
+                    <span class="small {% if sub.completada %}text-decoration-line-through text-muted{% endif %}">
+                      {{ sub.titulo }}
+                    </span>
+                    <a href="{{ url_for('eliminar_subtarea', id=sub.id) }}"
+                       class="ms-auto text-danger text-decoration-none small">
+                      <i class="bi bi-x"></i>
+                    </a>
+                  </li>
+                  {% endfor %}
+                </ul>
+                {% endif %}
+
+                <form action="{{ url_for('agregar_subtarea', tarea_id=tarea.id) }}" method="POST"
+                      class="d-flex gap-2 mb-3">
+                  <input type="text" name="titulo" class="form-control form-control-sm rounded-3"
+                         placeholder="Agregar subtarea..."/>
+                  <button type="submit" class="btn btn-outline-primary btn-sm rounded-3">
+                    <i class="bi bi-plus"></i>
+                  </button>
+                </form>
+
+                <div class="d-flex gap-2">
+                  <a href="{{ url_for('completar_tarea', id=tarea.id) }}" class="btn btn-success btn-sm">
+                    <i class="bi bi-check2"></i> Completar
+                  </a>
+                  <a href="{{ url_for('editar_tarea', id=tarea.id) }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <a href="{{ url_for('eliminar_tarea', id=tarea.id) }}"
+                     class="btn btn-outline-danger btn-sm"
+                     onclick="return confirm('¿Eliminar esta tarea?')">
+                    <i class="bi bi-trash"></i>
+                  </a>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-clipboard-check display-4 d-block mb-2 text-success"></i>
+        <p class="fw-semibold">¡Sin tareas pendientes! 🎉</p>
+        <a href="{{ url_for('nueva_tarea') }}" class="btn btn-primary btn-sm">Agregar tarea</a>
+      </div>
+    {% endif %}
+
+    {% if tareas_completadas %}
+    <hr class="my-4"/>
+    <h5 class="fw-bold mb-3 text-muted">
+      <i class="bi bi-check-circle-fill text-success me-2"></i>Completadas
+    </h5>
+    <div class="row g-3">
+      {% for tarea in tareas_completadas %}
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm rounded-4 opacity-75">
+            <div class="card-body">
+              <h6 class="fw-bold text-decoration-line-through text-muted mb-1">{{ tarea.titulo }}</h6>
+              <p class="small text-muted mb-3">
+                <i class="bi bi-calendar-event me-1"></i>
+                {{ tarea.fecha_limite.strftime('%d/%m/%Y') }}
+              </p>
+              <div class="d-flex gap-2">
+                <a href="{{ url_for('completar_tarea', id=tarea.id) }}" class="btn btn-outline-secondary btn-sm">
+                  <i class="bi bi-arrow-counterclockwise"></i> Reabrir
+                </a>
+                <a href="{{ url_for('eliminar_tarea', id=tarea.id) }}"
+                   class="btn btn-outline-danger btn-sm"
+                   onclick="return confirm('¿Eliminar?')">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- ── COLUMNA DERECHA: Calendario + Eventos ─────────────────── -->
+  <div class="col-lg-4">
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <button class="btn btn-sm btn-outline-secondary" id="btnAnterior">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <h6 class="fw-bold mb-0" id="mesAnio"></h6>
+          <button class="btn btn-sm btn-outline-secondary" id="btnSiguiente">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+
+        <!-- Días de la semana -->
+        <div id="calendarHeader" class="text-center mb-1"></div>
+
+        <!-- Días del mes -->
+        <div id="calendarDias" class="text-center"></div>
+
       </div>
     </div>
-  {% endfor %}
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3">
+          <i class="bi bi-calendar-plus text-primary me-2"></i>Agregar evento
+        </h6>
+        <form action="{{ url_for('nuevo_evento') }}" method="POST">
+          <div class="mb-2">
+            <input type="text" name="titulo" class="form-control form-control-sm rounded-3"
+                   placeholder="Nombre del evento" required/>
+          </div>
+          <div class="mb-2">
+            <input type="date" name="fecha" class="form-control form-control-sm rounded-3" required/>
+          </div>
+          <div class="mb-3">
+            <input type="time" name="hora" class="form-control form-control-sm rounded-3"/>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm w-100 rounded-3">
+            <i class="bi bi-plus-circle me-1"></i>Agregar
+          </button>
+        </form>
+      </div>
+    </div>
+
+    {% if eventos %}
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3">
+          <i class="bi bi-calendar-event text-primary me-2"></i>Próximos eventos
+        </h6>
+        {% for evento in eventos | sort(attribute='fecha') %}
+        <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+          <div>
+            <p class="mb-0 small fw-semibold">{{ evento.titulo }}</p>
+            <p class="mb-0 small text-muted">
+              <i class="bi bi-calendar2 me-1"></i>{{ evento.fecha.strftime('%d/%m/%Y') }}
+              {% if evento.hora %}
+                <i class="bi bi-clock me-1 ms-2"></i>{{ evento.hora }}
+              {% endif %}
+            </p>
+          </div>
+          <a href="{{ url_for('eliminar_evento', id=evento.id) }}"
+             class="text-danger text-decoration-none ms-2">
+            <i class="bi bi-x-circle"></i>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
 </div>
-{% endif %}
+
+<script>
+  const fechasEntregas = {{ fechas_entregas | tojson | default('[]') }};
+  const fechasEventos = {{ fechas_eventos | tojson | default('[]') }};
+
+  let hoy  = new Date();
+  let anio = hoy.getFullYear();
+  let mes  = hoy.getMonth();
+
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                 'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const diasSemana = ['Lu','Ma','Mi','Ju','Vi','Sa','Do'];
+
+  const gridStyle = 'display:grid; grid-template-columns:repeat(7,1fr); gap:4px;';
+
+  function renderCalendar() {
+    document.getElementById('mesAnio').textContent = `${meses[mes]} ${anio}`;
+
+    // Encabezado días
+    let header = `<div style="${gridStyle}">`;
+    diasSemana.forEach(d => {
+      header += `<div style="font-size:0.75rem; font-weight:bold; color:#888; text-align:center;">${d}</div>`;
+    });
+    header += '</div>';
+    document.getElementById('calendarHeader').innerHTML = header;
+
+    const primerDia = new Date(anio, mes, 1).getDay();
+    const diasMes   = new Date(anio, mes + 1, 0).getDate();
+    const offset    = (primerDia === 0) ? 6 : primerDia - 1;
+
+    let html = `<div style="${gridStyle}">`;
+
+    for (let i = 0; i < offset; i++) {
+      html += `<div></div>`;
+    }
+
+    for (let d = 1; d <= diasMes; d++) {
+      const fecha = `${anio}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const esHoy = (d === hoy.getDate() && mes === hoy.getMonth() && anio === hoy.getFullYear());
+      const tieneEntrega = fechasEntregas.includes(fecha);
+      const tieneEvento  = fechasEventos.includes(fecha);
+
+      const numStyle = esHoy
+        ? 'background:#4361ee; color:white; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-weight:bold; margin:auto;'
+        : 'text-align:center;';
+
+      html += `
+        <div style="display:flex; flex-direction:column; align-items:center; padding:2px; border-radius:8px; font-size:0.8rem;">
+          <span style="${numStyle}">${d}</span>
+          <div style="display:flex; gap:2px; margin-top:2px; min-height:6px;">
+            ${tieneEntrega ? '<span style="width:5px;height:5px;border-radius:50%;background:#e63946;display:inline-block;"></span>' : ''}
+            ${tieneEvento  ? '<span style="width:5px;height:5px;border-radius:50%;background:#4361ee;display:inline-block;"></span>' : ''}
+          </div>
+        </div>`;
+    }
+
+    html += '</div>';
+    document.getElementById('calendarDias').innerHTML = html;
+  }
+
+  document.getElementById('btnAnterior').addEventListener('click', () => {
+    mes--;
+    if (mes < 0) { mes = 11; anio--; }
+    renderCalendar();
+  });
+
+  document.getElementById('btnSiguiente').addEventListener('click', () => {
+    mes++;
+    if (mes > 11) { mes = 0; anio++; }
+    renderCalendar();
+  });
+
+  renderCalendar();
+</script>
 
 {% endblock %}

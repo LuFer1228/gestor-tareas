@@ -2,6 +2,18 @@
 {% block title %}{% if accion == 'nueva' %}Nueva Tarea{% else %}Editar Tarea{% endif %} — EduTask{% endblock %}
 
 {% block content %}
+<style>
+  .tarea-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: url("{{ url_for('static', filename='img/img_2.png') }}") center center / cover no-repeat;
+    z-index: -1;
+    filter: brightness(0.7);
+  }
+</style>
+
+<div class="tarea-bg"></div>
 <div class="row justify-content-center">
   <div class="col-md-6 col-lg-5">
     <div class="card shadow border-0 rounded-4 mt-2">

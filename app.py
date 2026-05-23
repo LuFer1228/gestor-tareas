@@ -1,8 +1,9 @@
-from flask import Flask, render_template, redirect, url_for, request, flash
+from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, date, timedelta
-from database import db, Usuario, Tarea
+from database import db, Usuario, Tarea, Subtarea, Evento
+import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'clave-secreta-2026'
@@ -83,11 +84,23 @@ def dashboard():
     hoy = date.today()
     pronto = hoy + timedelta(days=2)
 
+    # Eventos del mes actual
+    eventos = Evento.query.filter_by(usuario_id=current_user.id).all()
+    fechas_eventos = [e.fecha.strftime('%Y-%m-%d') for e in eventos]
+
+    # Fechas de entregas
+    fechas_entregas = [t.fecha_limite.strftime('%Y-%m-%d') for t in tareas_pendientes]
+
     return render_template('dashboard.html',
         tareas_pendientes=tareas_pendientes,
         tareas_completadas=tareas_completadas,
         hoy=hoy,
-        pronto=pronto)
+        pronto=pronto,
+        eventos=eventos,
+        fechas_eventos=fechas_eventos,
+        fechas_entregas=fechas_entregas)
+
+# ── Tareas ────────────────────────────────────────────────────────
 
 @app.route('/tarea/nueva', methods=['GET', 'POST'])
 @login_required
@@ -142,7 +155,66 @@ def eliminar_tarea(id):
     flash('Tarea eliminada.', 'info')
     return redirect(url_for('dashboard'))
 
+# ── Subtareas ─────────────────────────────────────────────────────
+
+@app.route('/subtarea/agregar/<int:tarea_id>', methods=['POST'])
+@login_required
+def agregar_subtarea(tarea_id):
+    tarea = Tarea.query.filter_by(id=tarea_id, usuario_id=current_user.id).first_or_404()
+    titulo = request.form.get('titulo')
+    if titulo:
+        subtarea = Subtarea(titulo=titulo, tarea_id=tarea.id)
+        db.session.add(subtarea)
+        db.session.commit()
+    return redirect(url_for('dashboard'))
+
+@app.route('/subtarea/completar/<int:id>')
+@login_required
+def completar_subtarea(id):
+    subtarea = Subtarea.query.get_or_404(id)
+    tarea = Tarea.query.filter_by(id=subtarea.tarea_id, usuario_id=current_user.id).first_or_404()
+    subtarea.completada = not subtarea.completada
+    db.session.commit()
+    return redirect(url_for('dashboard'))
+
+@app.route('/subtarea/eliminar/<int:id>')
+@login_required
+def eliminar_subtarea(id):
+    subtarea = Subtarea.query.get_or_404(id)
+    Tarea.query.filter_by(id=subtarea.tarea_id, usuario_id=current_user.id).first_or_404()
+    db.session.delete(subtarea)
+    db.session.commit()
+    return redirect(url_for('dashboard'))
+
+# ── Eventos ───────────────────────────────────────────────────────
+
+@app.route('/evento/nuevo', methods=['POST'])
+@login_required
+def nuevo_evento():
+    titulo = request.form.get('titulo')
+    fecha = datetime.strptime(request.form.get('fecha'), '%Y-%m-%d').date()
+    hora = request.form.get('hora')
+
+    evento = Evento(
+        titulo=titulo,
+        fecha=fecha,
+        hora=hora,
+        usuario_id=current_user.id
+    )
+    db.session.add(evento)
+    db.session.commit()
+    flash('¡Evento agregado!', 'success')
+    return redirect(url_for('dashboard'))
+
+@app.route('/evento/eliminar/<int:id>')
+@login_required
+def eliminar_evento(id):
+    evento = Evento.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
+    db.session.delete(evento)
+    db.session.commit()
+    return redirect(url_for('dashboard'))
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
