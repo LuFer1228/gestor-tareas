@@ -3,8 +3,12 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, date, timedelta
 from database import db, Usuario, Tarea, Subtarea, Evento
+from dotenv import load_dotenv
 import os
-
+load_dotenv()
+from groq import Groq
+load_dotenv()
+groq_client = Groq(api_key=os.environ.get('GROQ_API_KEY'))
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'clave-secreta-2026'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gestor_tareas.db'
@@ -218,3 +222,134 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+# ── Rutas de IA ───────────────────────────────────────────────────
+
+@app.route('/ia/chatbot', methods=['POST'])
+@login_required
+def chatbot():
+    mensaje = request.form.get('mensaje', '')
+    historial = request.form.get('historial', '[]')
+    if not mensaje:
+        return jsonify({'respuesta': 'Escribe algo para que pueda ayudarte.'})
+
+    import json
+    historial = json.loads(historial)
+
+    # Obtener contexto del usuario
+    tareas_pendientes = Tarea.query.filter_by(
+        usuario_id=current_user.id, completada=False
+    ).order_by(Tarea.fecha_limite.asc()).all()
+
+    tareas_completadas = Tarea.query.filter_by(
+        usuario_id=current_user.id, completada=True
+    ).all()
+
+    eventos = Evento.query.filter_by(usuario_id=current_user.id).all()
+
+    # Construir contexto
+    contexto_tareas = ""
+    for t in tareas_pendientes:
+        total = len(t.subtareas)
+        hechas = sum(1 for s in t.subtareas if s.completada)
+        progreso = int((hechas / total) * 100) if total > 0 else 0
+        contexto_tareas += f"- {t.titulo} (vence: {t.fecha_limite.strftime('%d/%m/%Y')}, progreso: {progreso}%)\n"
+
+    contexto_completadas = ""
+    for t in tareas_completadas:
+        contexto_completadas += f"- {t.titulo}\n"
+
+    contexto_eventos = ""
+    for e in eventos:
+        contexto_eventos += f"- {e.titulo} ({e.fecha.strftime('%d/%m/%Y')}{ ' a las ' + e.hora if e.hora else ''})\n"
+
+    system_prompt = f"""Eres un asistente académico personal amigable para {current_user.nombre}.
+Responde siempre en español, de forma clara y concisa.
+Tienes acceso al contexto académico actual del estudiante:
+
+TAREAS PENDIENTES:
+{contexto_tareas if contexto_tareas else 'No tiene tareas pendientes.'}
+
+TAREAS COMPLETADAS:
+{contexto_completadas if contexto_completadas else 'No tiene tareas completadas.'}
+
+EVENTOS PRÓXIMOS:
+{contexto_eventos if contexto_eventos else 'No tiene eventos programados.'}
+
+Usa esta información para dar respuestas personalizadas. Si te preguntan por sus tareas, fechas, proyectos o eventos, responde basándote en esta información."""
+
+    # Construir mensajes con historial
+    messages = [{"role": "system", "content": system_prompt}]
+    for msg in historial[-10:]:  # últimos 10 mensajes
+        messages.append({"role": msg["role"], "content": msg["content"]})
+    messages.append({"role": "user", "content": mensaje})
+
+    try:
+        respuesta = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=messages
+        )
+        texto = respuesta.choices[0].message.content
+        return jsonify({'respuesta': texto})
+    except Exception as e:
+        return jsonify({'respuesta': f'Error: {str(e)}'})
+    
+@app.route('/ia/plan/<int:tarea_id>', methods=['POST'])
+@login_required
+def generar_plan(tarea_id):
+    tarea = Tarea.query.filter_by(id=tarea_id, usuario_id=current_user.id).first_or_404()
+    try:
+        respuesta = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "Eres un asistente académico. Genera exactamente 5 subtareas concretas para completar la tarea del estudiante. Responde SOLO con las 5 subtareas, una por línea, sin números ni viñetas, sin texto extra."},
+                {"role": "user", "content": f"Título: {tarea.titulo}\nDescripción: {tarea.descripcion or 'Sin descripción'}\nFecha límite: {tarea.fecha_limite}"}
+            ]
+        )
+        subtareas_texto = respuesta.choices[0].message.content.strip().split('\n')
+        subtareas_texto = [s.strip() for s in subtareas_texto if s.strip()][:5]
+        for titulo in subtareas_texto:
+            subtarea = Subtarea(titulo=titulo, tarea_id=tarea.id)
+            db.session.add(subtarea)
+        db.session.commit()
+        flash(f'¡La IA generó {len(subtareas_texto)} subtareas!', 'success')
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'danger')
+    return redirect(url_for('dashboard'))
+
+@app.route('/ia/resumir/<int:tarea_id>', methods=['POST'])
+@login_required
+def resumir_tarea(tarea_id):
+    tarea = Tarea.query.filter_by(id=tarea_id, usuario_id=current_user.id).first_or_404()
+    if not tarea.descripcion:
+        flash('La tarea no tiene descripción para resumir.', 'warning')
+        return redirect(url_for('dashboard'))
+    try:
+        # Guardar descripción original antes de resumir
+        if not tarea.descripcion_original:
+            tarea.descripcion_original = tarea.descripcion
+        respuesta = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "Resume la descripción de la tarea académica en máximo 2 líneas, de forma clara y directa. Solo devuelve el resumen, sin texto extra."},
+                {"role": "user", "content": tarea.descripcion}
+            ]
+        )
+        tarea.descripcion = respuesta.choices[0].message.content.strip()
+        db.session.commit()
+        flash('¡Descripción resumida por la IA!', 'success')
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'danger')
+    return redirect(url_for('dashboard'))
+
+@app.route('/ia/restaurar/<int:tarea_id>')
+@login_required
+def restaurar_descripcion(tarea_id):
+    tarea = Tarea.query.filter_by(id=tarea_id, usuario_id=current_user.id).first_or_404()
+    if tarea.descripcion_original:
+        tarea.descripcion = tarea.descripcion_original
+        tarea.descripcion_original = None
+        db.session.commit()
+        flash('¡Descripción restaurada!', 'success')
+    else:
+        flash('No hay descripción original guardada.', 'warning')
+    return redirect(url_for('dashboard'))

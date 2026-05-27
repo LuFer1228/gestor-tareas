@@ -23,6 +23,7 @@ class Tarea(db.Model):
     fecha_limite = db.Column(db.Date, nullable=False)
     completada = db.Column(db.Boolean, default=False)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    descripcion_original = db.Column(db.Text, nullable=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     # Relación con subtareas
     subtareas = db.relationship('Subtarea', backref='tarea', lazy=True, cascade='all, delete-orphan')

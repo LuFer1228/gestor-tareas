@@ -2,6 +2,7 @@
 {% block title %}Mis Tareas — EduTask{% endblock %}
 
 {% block content %}
+
 <style>
   .dashboard-bg {
     position: fixed;
@@ -14,9 +15,10 @@
 </style>
 
 <div class="dashboard-bg"></div>
+
 <div class="row g-4">
 
-  <!-- ── COLUMNA IZQUIERDA: Tareas ─────────────────────────────── -->
+  <!-- ── COLUMNA IZQUIERDA ─────────────────────────────────────── -->
   <div class="col-lg-8">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -42,99 +44,118 @@
     </h5>
 
     {% if tareas_pendientes %}
-      <div class="row g-3 mb-4">
-        {% for tarea in tareas_pendientes %}
-          {% set total = tarea.subtareas | length %}
-          {% set hechas = tarea.subtareas | selectattr('completada') | list | length %}
-          {% set progreso = ((hechas / total) * 100) | int if total > 0 else 0 %}
+    <div class="row g-3 mb-4">
+      {% for tarea in tareas_pendientes %}
+        {% set total = tarea.subtareas | length %}
+        {% set hechas = tarea.subtareas | selectattr('completada') | list | length %}
+        {% set progreso = ((hechas / total) * 100) | int if total > 0 else 0 %}
+        <div class="col-12">
+          <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body">
 
-          <div class="col-12">
-            <div class="card border-0 shadow-sm rounded-4">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <h6 class="fw-bold mb-0">{{ tarea.titulo }}</h6>
-                  {% if tarea.fecha_limite == hoy %}
-                    <span class="badge bg-danger">¡Hoy!</span>
-                  {% elif tarea.fecha_limite <= pronto %}
-                    <span class="badge bg-warning text-dark">Pronto</span>
-                  {% endif %}
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="fw-bold mb-0">{{ tarea.titulo }}</h6>
+                {% if tarea.fecha_limite == hoy %}
+                  <span class="badge bg-danger">¡Hoy!</span>
+                {% elif tarea.fecha_limite <= pronto %}
+                  <span class="badge bg-warning text-dark">Pronto</span>
+                {% endif %}
+              </div>
+
+              {% if tarea.descripcion %}
+                <p class="text-muted small mb-2">{{ tarea.descripcion }}</p>
+              {% endif %}
+
+              <p class="small text-muted mb-2">
+                <i class="bi bi-calendar-event me-1"></i>
+                {{ tarea.fecha_limite.strftime('%d/%m/%Y') }}
+              </p>
+
+              {% if total > 0 %}
+              <div class="mb-2">
+                <div class="d-flex justify-content-between small text-muted mb-1">
+                  <span>Progreso</span>
+                  <span>{{ hechas }}/{{ total }} — {{ progreso }}%</span>
                 </div>
-
-                {% if tarea.descripcion %}
-                  <p class="text-muted small mb-2">{{ tarea.descripcion }}</p>
-                {% endif %}
-
-                <p class="small text-muted mb-2">
-                  <i class="bi bi-calendar-event me-1"></i>
-                  {{ tarea.fecha_limite.strftime('%d/%m/%Y') }}
-                </p>
-
-                {% if total > 0 %}
-                <div class="mb-2">
-                  <div class="d-flex justify-content-between small text-muted mb-1">
-                    <span>Progreso</span>
-                    <span>{{ hechas }}/{{ total }} — {{ progreso }}%</span>
-                  </div>
-                  <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-success" style="width: {{ progreso }}%"></div>
-                  </div>
+                <div class="progress" style="height: 8px;">
+                  <div class="progress-bar bg-success" style="width: {{ progreso }}%;"></div>
                 </div>
-                {% endif %}
+              </div>
+              {% endif %}
 
-                {% if tarea.subtareas %}
-                <ul class="list-unstyled mb-2">
-                  {% for sub in tarea.subtareas %}
-                  <li class="d-flex align-items-center gap-2 py-1 border-bottom">
-                    <a href="{{ url_for('completar_subtarea', id=sub.id) }}" class="text-decoration-none">
-                      <i class="bi {% if sub.completada %}bi-check-circle-fill text-success{% else %}bi-circle text-muted{% endif %}"></i>
-                    </a>
-                    <span class="small {% if sub.completada %}text-decoration-line-through text-muted{% endif %}">
-                      {{ sub.titulo }}
-                    </span>
-                    <a href="{{ url_for('eliminar_subtarea', id=sub.id) }}"
-                       class="ms-auto text-danger text-decoration-none small">
-                      <i class="bi bi-x"></i>
-                    </a>
-                  </li>
-                  {% endfor %}
-                </ul>
-                {% endif %}
+              {% if tarea.subtareas %}
+              <ul class="list-unstyled mb-2">
+                {% for sub in tarea.subtareas %}
+                <li class="d-flex align-items-center gap-2 py-1 border-bottom">
+                  <a href="{{ url_for('completar_subtarea', id=sub.id) }}" class="text-decoration-none">
+                    <i class="bi {% if sub.completada %}bi-check-circle-fill text-success{% else %}bi-circle text-muted{% endif %}"></i>
+                  </a>
+                  <span class="small {% if sub.completada %}text-decoration-line-through text-muted{% endif %}">
+                    {{ sub.titulo }}
+                  </span>
+                  <a href="{{ url_for('eliminar_subtarea', id=sub.id) }}"
+                     class="ms-auto text-danger text-decoration-none small">
+                    <i class="bi bi-x"></i>
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
+              {% endif %}
 
-                <form action="{{ url_for('agregar_subtarea', tarea_id=tarea.id) }}" method="POST"
-                      class="d-flex gap-2 mb-3">
-                  <input type="text" name="titulo" class="form-control form-control-sm rounded-3"
-                         placeholder="Agregar subtarea..."/>
-                  <button type="submit" class="btn btn-outline-primary btn-sm rounded-3">
-                    <i class="bi bi-plus"></i>
+              <form action="{{ url_for('agregar_subtarea', tarea_id=tarea.id) }}" method="POST"
+                    class="d-flex gap-2 mb-3">
+                <input type="text" name="titulo" class="form-control form-control-sm rounded-3"
+                       placeholder="Agregar subtarea..."/>
+                <button type="submit" class="btn btn-outline-primary btn-sm rounded-3">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </form>
+
+              <!-- Botones de acción + IA -->
+              <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ url_for('completar_tarea', id=tarea.id) }}" class="btn btn-success btn-sm">
+                  <i class="bi bi-check2"></i> Completar
+                </a>
+                <a href="{{ url_for('editar_tarea', id=tarea.id) }}" class="btn btn-outline-secondary btn-sm">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{{ url_for('eliminar_tarea', id=tarea.id) }}"
+                   class="btn btn-outline-danger btn-sm"
+                   onclick="return confirm('¿Eliminar esta tarea?')">
+                  <i class="bi bi-trash"></i>
+                </a>
+                <form action="{{ url_for('generar_plan', tarea_id=tarea.id) }}" method="POST" class="d-inline">
+                  <button type="submit" class="btn btn-outline-primary btn-sm"
+                          onclick="return confirm('¿Generar plan con IA?')">
+                    <i class="bi bi-robot"></i> Plan IA
                   </button>
                 </form>
-
-                <div class="d-flex gap-2">
-                  <a href="{{ url_for('completar_tarea', id=tarea.id) }}" class="btn btn-success btn-sm">
-                    <i class="bi bi-check2"></i> Completar
-                  </a>
-                  <a href="{{ url_for('editar_tarea', id=tarea.id) }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-pencil"></i>
-                  </a>
-                  <a href="{{ url_for('eliminar_tarea', id=tarea.id) }}"
-                     class="btn btn-outline-danger btn-sm"
-                     onclick="return confirm('¿Eliminar esta tarea?')">
-                    <i class="bi bi-trash"></i>
-                  </a>
-                </div>
-
+                <form action="{{ url_for('resumir_tarea', tarea_id=tarea.id) }}" method="POST" class="d-inline">
+  <button type="submit" class="btn btn-outline-info btn-sm"
+          onclick="return confirm('¿Resumir descripción con IA?')">
+    <i class="bi bi-stars"></i> Resumir
+  </button>
+</form>
+{% if tarea.descripcion_original %}
+<a href="{{ url_for('restaurar_descripcion', tarea_id=tarea.id) }}"
+   class="btn btn-outline-warning btn-sm">
+  <i class="bi bi-arrow-counterclockwise"></i> Restaurar
+</a>
+{% endif %}
               </div>
+
             </div>
           </div>
-        {% endfor %}
-      </div>
+        </div>
+      {% endfor %}
+    </div>
 
     {% else %}
-      <div class="text-center text-muted py-5">
-        <i class="bi bi-clipboard-check display-4 d-block mb-2 text-success"></i>
-        <p class="fw-semibold">¡Sin tareas pendientes! 🎉</p>
-        <a href="{{ url_for('nueva_tarea') }}" class="btn btn-primary btn-sm">Agregar tarea</a>
-      </div>
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-clipboard-check display-4 d-block mb-2 text-success"></i>
+      <p class="fw-semibold">¡Sin tareas pendientes! 🎉</p>
+      <a href="{{ url_for('nueva_tarea') }}" class="btn btn-primary btn-sm">Agregar tarea</a>
+    </div>
     {% endif %}
 
     {% if tareas_completadas %}
@@ -171,7 +192,7 @@
 
   </div>
 
-  <!-- ── COLUMNA DERECHA: Calendario + Eventos ─────────────────── -->
+  <!-- ── COLUMNA DERECHA ────────────────────────────────────────── -->
   <div class="col-lg-4">
 
     <div class="card border-0 shadow-sm rounded-4 mb-4">
@@ -185,13 +206,8 @@
             <i class="bi bi-chevron-right"></i>
           </button>
         </div>
-
-        <!-- Días de la semana -->
         <div id="calendarHeader" class="text-center mb-1"></div>
-
-        <!-- Días del mes -->
         <div id="calendarDias" class="text-center"></div>
-
       </div>
     </div>
 
@@ -248,78 +264,130 @@
   </div>
 </div>
 
-<script>
-  const fechasEntregas = {{ fechas_entregas | tojson | default('[]') }};
-  const fechasEventos = {{ fechas_eventos | tojson | default('[]') }};
+<!-- Chatbot flotante -->
+<button class="btn btn-primary rounded-circle shadow-lg"
+        style="position:fixed; bottom:30px; right:30px; width:60px; height:60px; font-size:1.5rem; z-index:9999;"
+        onclick="document.getElementById('chatModal').style.display='flex'">
+  🤖
+</button>
 
+<div id="chatModal" style="display:none; position:fixed; bottom:100px; right:30px; width:340px;
+     height:480px; background:white; border-radius:20px; box-shadow:0 10px 40px rgba(0,0,0,0.2);
+     flex-direction:column; z-index:9999; overflow:hidden;">
+  <div style="background:#4361ee; padding:16px; display:flex; justify-content:space-between; align-items:center;">
+    <span style="color:white; font-weight:bold;">🤖 Asistente EduTask</span>
+    <button onclick="document.getElementById('chatModal').style.display='none'"
+            style="background:none; border:none; color:white; font-size:1.2rem; cursor:pointer;">✕</button>
+  </div>
+  <div id="chatMensajes" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px;">
+    <div style="background:#f0f4ff; padding:10px 14px; border-radius:12px; font-size:0.85rem; max-width:85%;">
+      ¡Hola! 👋 Soy tu asistente académico. ¿En qué te puedo ayudar hoy?
+    </div>
+  </div>
+  <div style="padding:12px; border-top:1px solid #eee; display:flex; gap:8px;">
+    <input id="chatInput" type="text" placeholder="Escribe tu pregunta..."
+           style="flex:1; border:1px solid #ddd; border-radius:20px; padding:8px 14px; font-size:0.85rem; outline:none;"
+           onkeypress="if(event.key==='Enter') enviarMensaje()"/>
+    <button onclick="enviarMensaje()"
+            style="background:#4361ee; border:none; color:white; border-radius:50%; width:36px; height:36px; cursor:pointer;">
+      <i class="bi bi-send"></i>
+    </button>
+  </div>
+</div>
+
+<script>
+  const fechasEntregas = {{ fechas_entregas | tojson }};
+  const fechasEventos  = {{ fechas_eventos  | tojson }};
   let hoy  = new Date();
   let anio = hoy.getFullYear();
   let mes  = hoy.getMonth();
-
-  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-                 'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   const diasSemana = ['Lu','Ma','Mi','Ju','Vi','Sa','Do'];
-
   const gridStyle = 'display:grid; grid-template-columns:repeat(7,1fr); gap:4px;';
 
   function renderCalendar() {
     document.getElementById('mesAnio').textContent = `${meses[mes]} ${anio}`;
-
-    // Encabezado días
     let header = `<div style="${gridStyle}">`;
-    diasSemana.forEach(d => {
-      header += `<div style="font-size:0.75rem; font-weight:bold; color:#888; text-align:center;">${d}</div>`;
-    });
+    diasSemana.forEach(d => { header += `<div style="font-size:0.75rem; font-weight:bold; color:#888; text-align:center;">${d}</div>`; });
     header += '</div>';
     document.getElementById('calendarHeader').innerHTML = header;
-
     const primerDia = new Date(anio, mes, 1).getDay();
-    const diasMes   = new Date(anio, mes + 1, 0).getDate();
-    const offset    = (primerDia === 0) ? 6 : primerDia - 1;
-
+    const diasMes = new Date(anio, mes + 1, 0).getDate();
+    const offset = (primerDia === 0) ? 6 : primerDia - 1;
     let html = `<div style="${gridStyle}">`;
-
-    for (let i = 0; i < offset; i++) {
-      html += `<div></div>`;
-    }
-
+    for (let i = 0; i < offset; i++) html += `<div></div>`;
     for (let d = 1; d <= diasMes; d++) {
       const fecha = `${anio}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       const esHoy = (d === hoy.getDate() && mes === hoy.getMonth() && anio === hoy.getFullYear());
       const tieneEntrega = fechasEntregas.includes(fecha);
-      const tieneEvento  = fechasEventos.includes(fecha);
-
-      const numStyle = esHoy
-        ? 'background:#4361ee; color:white; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-weight:bold; margin:auto;'
-        : 'text-align:center;';
-
-      html += `
-        <div style="display:flex; flex-direction:column; align-items:center; padding:2px; border-radius:8px; font-size:0.8rem;">
-          <span style="${numStyle}">${d}</span>
-          <div style="display:flex; gap:2px; margin-top:2px; min-height:6px;">
-            ${tieneEntrega ? '<span style="width:5px;height:5px;border-radius:50%;background:#e63946;display:inline-block;"></span>' : ''}
-            ${tieneEvento  ? '<span style="width:5px;height:5px;border-radius:50%;background:#4361ee;display:inline-block;"></span>' : ''}
-          </div>
-        </div>`;
+      const tieneEvento = fechasEventos.includes(fecha);
+      const numStyle = esHoy ? 'background:#4361ee; color:white; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-weight:bold; margin:auto;' : 'text-align:center;';
+      html += `<div style="display:flex; flex-direction:column; align-items:center; padding:2px; border-radius:8px; font-size:0.8rem;">
+        <span style="${numStyle}">${d}</span>
+        <div style="display:flex; gap:2px; margin-top:2px; min-height:6px;">
+          ${tieneEntrega ? '<span style="width:5px;height:5px;border-radius:50%;background:#e63946;display:inline-block;"></span>' : ''}
+          ${tieneEvento ? '<span style="width:5px;height:5px;border-radius:50%;background:#4361ee;display:inline-block;"></span>' : ''}
+        </div>
+      </div>`;
     }
-
     html += '</div>';
     document.getElementById('calendarDias').innerHTML = html;
   }
 
-  document.getElementById('btnAnterior').addEventListener('click', () => {
-    mes--;
-    if (mes < 0) { mes = 11; anio--; }
-    renderCalendar();
-  });
-
-  document.getElementById('btnSiguiente').addEventListener('click', () => {
-    mes++;
-    if (mes > 11) { mes = 0; anio++; }
-    renderCalendar();
-  });
-
+  document.getElementById('btnAnterior').addEventListener('click', () => { mes--; if (mes < 0) { mes = 11; anio--; } renderCalendar(); });
+  document.getElementById('btnSiguiente').addEventListener('click', () => { mes++; if (mes > 11) { mes = 0; anio++; } renderCalendar(); });
   renderCalendar();
+
+  let historialChat = [];
+
+async function enviarMensaje() {
+  const input = document.getElementById('chatInput');
+  const mensajes = document.getElementById('chatMensajes');
+  const texto = input.value.trim();
+  if (!texto) return;
+
+  // Agregar mensaje del usuario al historial
+  historialChat.push({"role": "user", "content": texto});
+
+  mensajes.innerHTML += `
+    <div style="background:#4361ee; color:white; padding:10px 14px; border-radius:12px;
+                font-size:0.85rem; max-width:85%; align-self:flex-end; margin-left:auto;">
+      ${texto}
+    </div>`;
+  input.value = '';
+  mensajes.scrollTop = mensajes.scrollHeight;
+
+  mensajes.innerHTML += `
+    <div id="typing" style="background:#f0f4ff; padding:10px 14px; border-radius:12px; font-size:0.85rem; max-width:85%;">
+      ✍️ Escribiendo...
+    </div>`;
+  mensajes.scrollTop = mensajes.scrollHeight;
+
+  const formData = new FormData();
+  formData.append('mensaje', texto);
+  formData.append('historial', JSON.stringify(historialChat));
+
+  try {
+    const response = await fetch('/ia/chatbot', { method: 'POST', body: formData });
+    const data = await response.json();
+
+    // Agregar respuesta al historial
+    historialChat.push({"role": "assistant", "content": data.respuesta});
+
+    document.getElementById('typing').remove();
+    mensajes.innerHTML += `
+      <div style="background:#f0f4ff; padding:10px 14px; border-radius:12px; font-size:0.85rem; max-width:85%;">
+        ${data.respuesta}
+      </div>`;
+  } catch (error) {
+    document.getElementById('typing').remove();
+    mensajes.innerHTML += `
+      <div style="background:#ffe0e0; padding:10px 14px; border-radius:12px; font-size:0.85rem; max-width:85%;">
+        Error al conectar. Intenta de nuevo.
+      </div>`;
+  }
+  mensajes.scrollTop = mensajes.scrollHeight;
+}
 </script>
 
 {% endblock %}
