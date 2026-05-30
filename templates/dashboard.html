@@ -124,20 +124,20 @@
                    onclick="return confirm('¿Eliminar esta tarea?')">
                   <i class="bi bi-trash"></i>
                 </a>
-                <form action="{{ url_for('generar_plan', tarea_id=tarea.id) }}" method="POST" class="d-inline">
+                <form action="/ia/plan/{{ tarea.id }}" method="POST" class="d-inline"></form>
                   <button type="submit" class="btn btn-outline-primary btn-sm"
                           onclick="return confirm('¿Generar plan con IA?')">
                     <i class="bi bi-robot"></i> Plan IA
                   </button>
                 </form>
-                <form action="{{ url_for('resumir_tarea', tarea_id=tarea.id) }}" method="POST" class="d-inline">
+                <form action="/ia/resumir/{{ tarea.id }}" method="POST" class="d-inline"></form>
   <button type="submit" class="btn btn-outline-info btn-sm"
           onclick="return confirm('¿Resumir descripción con IA?')">
     <i class="bi bi-stars"></i> Resumir
   </button>
 </form>
 {% if tarea.descripcion_original %}
-<a href="{{ url_for('restaurar_descripcion', tarea_id=tarea.id) }}"
+<a href="/ia/restaurar/{{ tarea.id }}"
    class="btn btn-outline-warning btn-sm">
   <i class="bi bi-arrow-counterclockwise"></i> Restaurar
 </a>
