@@ -112,7 +112,7 @@
               </form>
 
               <!-- Botones de acción + IA -->
-              <div class="d-flex gap-2 flex-wrap">
+              <div class="d-flex gap-2 flex-wrap">  
                 <a href="{{ url_for('completar_tarea', id=tarea.id) }}" class="btn btn-success btn-sm">
                   <i class="bi bi-check2"></i> Completar
                 </a>
@@ -122,8 +122,7 @@
                 <a href="{{ url_for('eliminar_tarea', id=tarea.id) }}"
                    class="btn btn-outline-danger btn-sm"
                    onclick="return confirm('¿Eliminar esta tarea?')">
-                  <i class="bi bi-trash"></i>
-                </a>
+                  <i class="bi bi-trash"></i>                </a>
                 <!-- Plan IA -->
 <form action="/ia/plan/{{ tarea.id }}" method="POST" class="d-inline">
   <button type="submit" class="btn btn-outline-primary btn-sm"
@@ -146,6 +145,7 @@
   <i class="bi bi-arrow-counterclockwise"></i> Restaurar
 </a>
 {% endif %}
+              </div>
               </div>
 
             </div>
