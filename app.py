@@ -354,6 +354,7 @@ def restaurar_descripcion(tarea_id):
 
 with app.app_context():
     db.create_all()
+    print("TODAS LAS RUTAS:", sorted([str(r) for r in app.url_map.iter_rules()]))
     print("Rutas registradas:", [str(r) for r in app.url_map.iter_rules() if 'ia' in str(r)])
 
 if __name__ == '__main__':
