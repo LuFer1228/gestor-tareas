@@ -15,7 +15,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gestor_tareas.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
-
+with app.app_context():
+    db.create_all()
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Debes iniciar sesión para acceder.'
@@ -351,13 +352,6 @@ def restaurar_descripcion(tarea_id):
     else:
         flash('No hay descripción original guardada.', 'warning')
     return redirect(url_for('dashboard'))
-@app.before_request
-def crear_tablas():
-    db.create_all()
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
-    print("Rutas registradas:", [str(r) for r in app.url_map.iter_rules() if 'ia' in str(r)])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
