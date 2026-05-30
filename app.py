@@ -351,10 +351,12 @@ def restaurar_descripcion(tarea_id):
     else:
         flash('No hay descripción original guardada.', 'warning')
     return redirect(url_for('dashboard'))
-
-with app.app_context():
+@app.before_request
+def crear_tablas():
     db.create_all()
-    print("TODAS LAS RUTAS:", sorted([str(r) for r in app.url_map.iter_rules()]))
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
     print("Rutas registradas:", [str(r) for r in app.url_map.iter_rules() if 'ia' in str(r)])
 
 if __name__ == '__main__':
